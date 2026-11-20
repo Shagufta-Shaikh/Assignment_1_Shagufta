@@ -6,6 +6,12 @@
 ##
 ##***************************
 
+## contribution statement ----
+## Shagufta was the primary author of the Assignment 1 script.
+# Kristian revised the CSV paths, generated chi-square counts from the data,
+# corrected the Figure 2 standard errors, and plotted within-species
+# percentages in Figure 1.
+
 ## Packages used -------
 library(tidyverse)
 conflicted::conflicts_prefer(dplyr::filter())
@@ -84,7 +90,14 @@ counts <- matrix(
     TE_class = c("DNA transposons", "Retrotransposons")))
 
 #first edit ----
-#instead of manually using 4 typed counts, for better accuracy you can have R calculate those counts directly from the fragment data.This does the same in less lines of code.
+# The original script used four manually typed counts to build the table for the chi-square test.
+
+# R can calculate those same four counts directly from the fragment data in fewer lines of code.
+
+# table() counts how many DNA transposon and retrotransposon fragments belong to each species.
+
+# I checked that all four counts matched the original values. This also reduces the chance of a
+# typing error and keeps the test up to date if someone changes the data or filtering later.
 counts <- table(Species = te_fragment_df$species, TE_class = te_fragment_df$te_category)
 
 chisq.test(counts)
@@ -92,7 +105,13 @@ chisq.test(counts)
 ####calculate standard-error of proportions
 #deleted old block to avoid errors in downstream figure creation with new variables
 ## second edit ----
-## Calculate standard errors using the total fragment count for each species and uses the correct denominator ( total number of fragments instead of number of DNA transposons)
+# The original script calculated each standard error separately and then manually entered
+# the results into the tables used for Figure 2. R can calculate and store them in one step.
+
+# I also corrected the denominator. For example, 120 out of 1,037 T. spiralis fragments
+# are DNA transposons, so all 1,037 fragments contribute to that proportion.
+
+# Using sum(n) gives the correct total for each species and updates the error bars automatically.
 spiralis_proportions_er <- spiralis_proportions |>
   mutate(st_error = sqrt(proportion * (1 - proportion) / sum(n)))
 
@@ -105,25 +124,34 @@ aov(te_length ~ species * te_category, data = te_fragment_df)
 
 #GRAPH 1 EXPLORATORY ------
 ###Histogram comparing TE length between both species
+## third edit ----
+# The original figure showed how many TE fragments fell into each length bin. T. zimbabwensis
+# had 1,279 fragments and T. spiralis had 1,037, so a taller peak could partly reflect the
+# larger number of fragments in one dataset. I changed the y-axis to show percentages.
+
+# R divides the count in each length bin by the total fragment count for that species.
+
+# This makes it easier to see which fragment lengths are more common within each species.
 
 figure_1 <- ggplot() +
   geom_freqpoly(
     data = trichinella_zimbabwensis_te,
-    aes(x = te_length, colour = "T.zimbabwensis"), 
+    aes(x = te_length,y = after_stat(count / sum(count)), colour = "T.zimbabwensis"), 
     alpha = 0.6,
     bins = 200,
     linewidth = 1.0
   ) +
   geom_freqpoly(
     data = trichinella_spiralis_te, 
-    aes(x = te_length, colour = "T.spiralis"),
+    aes(x = te_length,y = after_stat(count / sum(count)), colour = "T.spiralis"),
     alpha = 0.6,
     bins = 200,
     linewidth = 1.0 
-  ) +
+  ) + 
+  scale_y_continuous(labels = scales::percent) +
   labs(
     x = "TE Length (bp)",
-    y = "TE Count",
+    y = "Percentage of fragments within species",
     colour = ""
   ) +
   coord_cartesian(xlim= c(0,300)
