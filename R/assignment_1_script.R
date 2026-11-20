@@ -15,8 +15,8 @@ theme_set(theme_light())
 
 ##Load the data -----
 
-trichinella_spiralis <- read.csv("../data/GCA_001447595.1.csv")
-trichinella_zimbabwensis <- read_csv("../data/GCA_001447665.1.csv")
+trichinella_spiralis <- read.csv("../Assignment_1_Shagufta/data/GCA_001447595.1.csv")
+trichinella_zimbabwensis <- read_csv("../Assignment_1_Shagufta/data/GCA_001447665.1.csv")
 
 ##WRANGLE -----
 ###make a vector containing strings of non TE names 
@@ -46,6 +46,9 @@ trichinella_zimbabwensis_te <- trichinella_zimbabwensis_te_cleaned |>
     te_category = case_when(
       str_detect(matching_class, "^DNA|^RC") ~ "DNA_transposon",
       str_detect(matching_class, "^(LINE|LTR|PLE|SINE)") ~ "Retrotransposon"))
+
+# very efficent and smart way of creating new coloumns
+
 
 ######Calculate TE category proportions for each species
 spiralis_proportions <- trichinella_spiralis_te |>
@@ -79,6 +82,11 @@ counts <- matrix(
   dimnames = list(
     Species = c("T. spiralis", "T. zimbabwensis"),
     TE_class = c("DNA transposons", "Retrotransposons")))
+
+#first edit ----
+#instead of manually using 4 typed counts, for better accuracy you can have R calculate those count directly from the fragment data.This does the same in less lines of code.
+
+counts <- table(Species = te_fragment_df$species, TE_class = te_fragment_df$te_category)
 
 chisq.test(counts)
 
