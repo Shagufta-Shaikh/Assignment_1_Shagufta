@@ -84,39 +84,20 @@ counts <- matrix(
     TE_class = c("DNA transposons", "Retrotransposons")))
 
 #first edit ----
-#instead of manually using 4 typed counts, for better accuracy you can have R calculate those count directly from the fragment data.This does the same in less lines of code.
-
+#instead of manually using 4 typed counts, for better accuracy you can have R calculate those counts directly from the fragment data.This does the same in less lines of code.
 counts <- table(Species = te_fragment_df$species, TE_class = te_fragment_df$te_category)
 
 chisq.test(counts)
 
 ####calculate standard-error of proportions
-p_spiralis_DNA <- 0.1157184
-n_spiralis_DNA <- 120
+#deleted old block to avoid errors in downstream figure creation with new variables
+## second edit ----
+## Calculate standard errors using the total fragment count for each species and uses the correct denominator ( total number of fragments instead of number of DNA transposons)
+spiralis_proportions_er <- spiralis_proportions |>
+  mutate(st_error = sqrt(proportion * (1 - proportion) / sum(n)))
 
-sqrt(p_spiralis_DNA * (1 - p_spiralis_DNA) / n_spiralis_DNA)
-
-p_spiralis_RT <- 0.8842816
-n_spiralis_RT <- 917
-
-sqrt(p_spiralis_RT * (1 - p_spiralis_RT) / n_spiralis_RT)
-
-p_zimb_DNA <- 0.1618452
-n_zimb_DNA <- 207
-
-sqrt(p_zimb_DNA * (1 - p_zimb_DNA) / n_zimb_DNA)
-
-p_zimb_RT <- 0.8381548
-n_zimb_RT <- 1072
-
-sqrt(p_zimb_RT * (1 - p_zimb_RT) / n_zimb_RT)
-
-#####add st error to proportions dataset
-spiralis_proportions_er <- spiralis_proportions |> 
-  mutate(st_error = c(0.02920155, 0.0105636))
-
-zimb_proportions_er <- zimb_proportions |> 
-  mutate(st_error = c(0.02559923, 0.01124902))
+zimb_proportions_er <- zimb_proportions |>
+  mutate(st_error = sqrt(proportion * (1 - proportion) / sum(n)))
 
 ###two way anova for TE length
 aov(te_length ~ species * te_category, data = te_fragment_df)
@@ -195,7 +176,7 @@ figure_2 <- ggplot() +
   scale_fill_manual(
     values = c(
       "T.spiralis" = "#E69F00",
-      "T.zimbabwensis" = "#1B98E0ff")
+      "T.zimbabwensis" = "#98A0ff")
   ) +
   scale_y_continuous(labels = scales::percent
   ) +
